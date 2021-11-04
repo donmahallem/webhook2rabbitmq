@@ -3,5 +3,8 @@
  * Source https://github.com/donmahallem/webhook2rabbitmq
  */
 
-export { AmqHandler } from './amq-handler';
-export { createServer } from './server';
+export interface IWebhookMesage<BASE = any> {
+    event: string;
+    id?: string;
+    body: BASE;
+}

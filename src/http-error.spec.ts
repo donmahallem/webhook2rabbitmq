@@ -1,6 +1,6 @@
 /*
- * Package @manniwatch/api-proxy-router
- * Source https://manniwatch.github.io/docs/api-proxy-router/index.html
+ * Package @donmahallem/webhook2rabbitmq
+ * Source https://github.com/donmahallem/webhook2rabbitmq
  */
 
 import { expect } from 'chai';
@@ -12,7 +12,7 @@ describe('http-error.ts', (): void => {
     const errorCodes: (number | undefined)[] = [123, 400, undefined];
     errorMessages.forEach((errorMessage: string): void => {
         errorCodes.forEach((errorCode: number | undefined): void => {
-            it(`should create Error with message '${errorMessage}' and code '${errorCode}'`, async (): Promise<void> => {
+            it(`should create Error with message '${errorMessage}' and code '${errorCode ? errorCode : 'undefined (500)'}'`, (): void => {
                 const error: HttpError = new HttpError(errorMessage, errorCode);
                 expect(error.message).to.eq(errorMessage);
                 expect(error.status).to.eq(errorCode ? errorCode : 500);

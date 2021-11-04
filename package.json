@@ -25,7 +25,7 @@
     "compose:api": "docker compose -f docker-compose.yml up",
     "compose:full": "docker compose -f docker-compose.yml -f docker-compose-full.yml up"
   },
-  "homepage": "https://manniwatch.github.io/docker/",
+  "homepage": "https://github.com/donmahallem/webhook2rabbitmq",
   "author": {
     "name": "donmahallem",
     "email": "donmahallem@users.noreply.github.com",
@@ -33,11 +33,11 @@
   },
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/manniwatch/docker/issues"
+    "url": "https://github.com/donmahallem/webhook2rabbitmq/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/manniwatch/docker.git"
+    "url": "https://github.com/donmahallem/webhook2rabbitmq.git"
   },
   "engines": {
     "node": ">=10.0.0"
@@ -59,9 +59,12 @@
   },
   "devDependencies": {
     "@donmahallem/eslint-config": "0.2.10",
+    "@types/amqplib": "0.8.2",
     "@types/chai": "4.2.22",
     "@types/express": "4.17.13",
     "@types/mocha": "9.0.0",
+    "@types/sinon": "10.0.6",
+    "@types/supertest": "2.0.11",
     "apidoc": "0.29.0",
     "chai": "4.3.4",
     "eslint": "7.32.0",

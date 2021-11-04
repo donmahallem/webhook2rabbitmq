@@ -1,6 +1,6 @@
 /*
- * Package @manniwatch/api-proxy-router
- * Source https://manniwatch.github.io/docs/api-proxy-router/index.html
+ * Package @donmahallem/webhook2rabbitmq
+ * Source https://github.com/donmahallem/webhook2rabbitmq
  */
 
 import { sign } from '@octokit/webhooks-methods';
@@ -39,14 +39,14 @@ describe('endpoints/stop-point.ts', (): void => {
                     app = createServer(handlerStub, testSecret);
                     dataSignature = testSecret ? await sign({ algorithm: 'sha256', secret: testSecret }, TEST_PAYLOAD) : undefined;
                 });
-                it(`should pass`, async (): Promise<void> => {
+                it(`should pass`, (): Promise<void> => {
                     handlerStub.send.resolves();
                     return supertest(app)
                         .post('/api/webhooks/github')
                         .set({
+                            'content-type': 'application/json',
                             ...(dataSignature ? { 'x-hub-signature-256': dataSignature } : {}),
                             'x-github-event': 'testevent',
-                            'content-type': 'application/json',
                         })
                         .send(TEST_PAYLOAD)
                         .expect(200, { status: 200 })
@@ -56,15 +56,15 @@ describe('endpoints/stop-point.ts', (): void => {
                             expect(false).to.not.eq(1);
                         });
                 });
-                it(`should not pass`, async (): Promise<void> => {
+                it(`should not pass`, (): Promise<void> => {
                     const TEST_ERROR: Error = new Error('test error');
                     handlerStub.send.rejects(TEST_ERROR);
                     return supertest(app)
                         .post('/api/webhooks/github')
                         .set({
+                            'content-type': 'application/json',
                             ...(dataSignature ? { 'x-hub-signature-256': dataSignature } : {}),
                             'x-github-event': 'testevent',
-                            'content-type': 'application/json',
                         })
                         .send(TEST_PAYLOAD)
                         .expect(500, { message: 'test error', status: 500 })
