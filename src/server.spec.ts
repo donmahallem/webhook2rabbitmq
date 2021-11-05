@@ -3,22 +3,32 @@
  * Source https://github.com/donmahallem/webhook2rabbitmq
  */
 
-import { sign } from '@octokit/webhooks-methods';
 import { expect } from 'chai';
 import express from 'express';
 import 'mocha';
+import proxyquire from 'proxyquire';
 import Sinon from 'sinon';
 import supertest from 'supertest';
-import { AmqHandler } from './amq-handler';
-import { createServer } from './server';
+import * as AmqHandlerImport from './amq-handler';
+import { createWebhookRouter } from './router';
+import * as ServerImport from './server';
 /* eslint-disable @typescript-eslint/no-explicit-any */
-describe('endpoints/stop-point.ts', (): void => {
-    describe('createStopPointRouter', (): void => {
-        let app: express.Application;
-        const TEST_SECRETS: (string | undefined)[] = ['super_secret', undefined];
+describe('server.ts', (): void => {
+    describe('WRServer', (): void => {
         let sandbox: Sinon.SinonSandbox;
+        let createRouterStub: Sinon.SinonStub<Parameters<typeof createWebhookRouter>, express.Router>;
+        let testInstance: typeof ServerImport;
         before((): void => {
             sandbox = Sinon.createSandbox();
+            createRouterStub = sandbox.stub();
+            testInstance = proxyquire<typeof ServerImport>('./server', {
+                './amq-handler': {
+                    WRServer: sandbox.createStubInstance(AmqHandlerImport.AmqHandler),
+                },
+                './router': {
+                    createWebhookRouter: createRouterStub,
+                },
+            });
         });
 
         afterEach('test and reset promise stub', (): void => {
@@ -27,54 +37,26 @@ describe('endpoints/stop-point.ts', (): void => {
         after((): void => {
             sandbox.restore();
         });
-        TEST_SECRETS.forEach((testSecret: string | undefined): void => {
-            describe(`with${testSecret ? '' : 'out'} secret`, (): void => {
-                let dataSignature: string | undefined;
-                const TEST_PAYLOAD: string = JSON.stringify({ test: true });
-                let handlerStub: Sinon.SinonStubbedInstance<AmqHandler>;
-                before('setup AmqHandler stub', (): void => {
-                    handlerStub = sandbox.createStubInstance<AmqHandler>(AmqHandler);
-                });
-                beforeEach(async (): Promise<void> => {
-                    app = createServer(handlerStub, testSecret);
-                    dataSignature = testSecret ? await sign({ algorithm: 'sha256', secret: testSecret }, TEST_PAYLOAD) : undefined;
-                });
-                it(`should pass`, (): Promise<void> => {
-                    handlerStub.send.resolves();
-                    return supertest(app)
-                        .post('/api/webhooks/github')
-                        .set({
-                            'content-type': 'application/json',
-                            ...(dataSignature ? { 'x-hub-signature-256': dataSignature } : {}),
-                            'x-github-event': 'testevent',
-                        })
-                        .send(TEST_PAYLOAD)
-                        .expect(200, { status: 200 })
-                        .expect('Content-Length', '14')
-                        .expect('Content-Type', /json/)
-                        .then((): void => {
-                            expect(false).to.not.eq(1);
-                        });
-                });
-                it(`should not pass`, (): Promise<void> => {
-                    const TEST_ERROR: Error = new Error('test error');
-                    handlerStub.send.rejects(TEST_ERROR);
-                    return supertest(app)
-                        .post('/api/webhooks/github')
-                        .set({
-                            'content-type': 'application/json',
-                            ...(dataSignature ? { 'x-hub-signature-256': dataSignature } : {}),
-                            'x-github-event': 'testevent',
-                        })
-                        .send(TEST_PAYLOAD)
-                        .expect(500, { message: 'test error', status: 500 })
-                        .expect('Content-Length', '37')
-                        .expect('Content-Type', /json/)
-                        .then((): void => {
-                            expect(false).to.not.eq(1);
-                        });
-                });
+        it(`should not pass`, (): Promise<void> => {
+            const r: express.Router = express.Router();
+            r.post('/', (req, res, next) => {
+                res.json({ a: true });
             });
+            r.use('**', (req, res) => {
+                console.log(req.baseUrl, req.path, req.body);
+                res.status(404).json({ asdf: true });
+            });
+            createRouterStub.returns(r);
+            const app: express.Application = new testInstance.WRServer({ amqConfig: '', queue: '' }).app;
+            return supertest(app)
+                .post('/api/webhooks/github')
+                .send('TEST_PAYLOAD')
+                .expect(200, { a: true })
+                .expect('Content-Length', '10')
+                .expect('Content-Type', /json/)
+                .then((): void => {
+                    expect(false).to.not.eq(1);
+                });
         });
     });
 });

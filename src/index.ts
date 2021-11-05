@@ -4,4 +4,4 @@
  */
 
 export { AmqHandler } from './amq-handler';
-export { createServer } from './server';
+export { WRServer } from './server';

@@ -15,7 +15,7 @@ async function awaitDrain(channel: Channel): Promise<void> {
     });
 }
 export class AmqHandler {
-    public constructor(private readonly connectionData: Parameters<typeof connect>[0], public readonly queueName: string) { }
+    public constructor(private readonly connectionData: Parameters<typeof connect>[0], public readonly queueName: string) {}
     private channel: Channel;
     private connection: Connection;
     private async initChannel(): Promise<Channel> {
