@@ -57,8 +57,8 @@ jobs:
         ports:
           - 5672:5672
         env:
-          - RABBITMQ_DEFAULT_USER=admin
-          - RABBITMQ_DEFAULT_PASS=admin
+          RABBITMQ_DEFAULT_USER: admin
+          RABBITMQ_DEFAULT_PASS: admin
     steps:
       - name: Checkout
         uses: actions/checkout@v2
