@@ -34,13 +34,18 @@ jobs:
           key: ${{ runner.os }}-node${{ matrix.node }}-npm-${{ hashFiles('**/package-lock.json') }}
       - name: Install Root Dependencies
         run: npm ci
-      - name: Test Build
+      - name: Build
         run: |
           npm run build
-          npm run build:docker
+      - name: Test
+        run: |
+          npm run test
       - name: Lint
         run: |
           npm run lint
+      - name: Build Docker
+        run: |
+          npm run build:docker
   test_docker:
     runs-on: ${{ matrix.os }}
     name: Test - ${{ matrix.os }} - Docker Build
