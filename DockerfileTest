@@ -1,0 +1,31 @@
+# Get base container
+FROM node:17.0-alpine AS apline_container
+
+# Build server
+FROM apline_container AS build_server
+
+WORKDIR /usr/src/app
+COPY --chown=node:node package*.json tsconfig*.json ./
+COPY --chown=node:node ./src ./src
+
+RUN npm ci
+RUN npm run build
+
+# Build Final Image
+FROM apline_container
+
+LABEL org.opencontainers.image.title="Webhook2RabbitMQ"
+LABEL org.opencontainers.image.description="Webhook2RabbitMQ"
+
+WORKDIR /usr/src/app
+COPY --chown=node:node package*.json tsconfig*.json ./
+COPY --chown=node:node ./src ./src
+COPY --chown=node:node ./.mocharc.yml ./.mocharc.yml
+COPY --chown=node:node ./.nycrc.json ./.nycrc.json
+COPY --from=build_server --chown=node:node /usr/src/app/dist ./dist
+RUN npm ci && \
+    npm cache clean --force
+
+USER node
+ENTRYPOINT ["npm", "run", "test:coverage"]
+CMD [ "" ]
