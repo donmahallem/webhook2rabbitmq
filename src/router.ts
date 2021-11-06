@@ -23,6 +23,7 @@ type GithubRequestHeaders = {
      */
     'x-hub-signature-256'?: string;
 };
+type GithubWebhookRequest = express.Request<Record<string, never>, any, string> & { headers: GithubRequestHeaders };
 /**
  * Creates an validation request handler
  *
@@ -30,7 +31,7 @@ type GithubRequestHeaders = {
  * @returns {express.RequestHandler} Request Handler
  */
 export function validateRequest(secret: string | undefined): express.RequestHandler {
-    return (req: express.Request & { headers: GithubRequestHeaders }, res: express.Response, next: express.NextFunction): void => {
+    return (req: GithubWebhookRequest, res: express.Response, next: express.NextFunction): void => {
         if (req.headers['x-github-event'] && typeof req.headers['x-github-event'] !== 'string') {
             res.sendStatus(400);
             return;
@@ -70,11 +71,7 @@ export function createWebhookRouter(amqHandler: AmqHandler, secret: string | und
         '',
         text({ defaultCharset: 'utf-8', type: ['text/plain', 'application/json'] }),
         validateRequest(secret),
-        (
-            req: express.Request<Record<string, never>, string> & { headers: GithubRequestHeaders },
-            res: express.Response,
-            next: express.NextFunction
-        ): void => {
+        (req: GithubWebhookRequest, res: express.Response, next: express.NextFunction): void => {
             if (typeof req.body !== 'string') {
                 res.sendStatus(400);
             }
