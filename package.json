@@ -67,6 +67,7 @@
     "@types/sinon": "10.0.6",
     "@types/supertest": "2.0.11",
     "apidoc": "0.50.1",
+    "c8": "7.10.0",
     "chai": "4.3.4",
     "eslint": "8.2.0",
     "mocha": "9.1.3",
