@@ -64,6 +64,8 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 2
+      - name: Install Root Dependencies
+        run: npm ci
       - name: Test
         run: |
           npm run test:integration
