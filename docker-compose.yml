@@ -1,7 +1,7 @@
 version: '3.3'
 
 services:
-  test_server:
+  test_client:
     build: 
       context: ./
       dockerfile: DockerfileTest
@@ -9,11 +9,14 @@ services:
     networks:
       - rabbitmq
     depends_on:
-      - rabbitmq_1
-  rabbitmq_1:
+      - rabbitmq
+    stop_signal: SIGINT
+    volumes:
+      - ./coverage:/usr/src/app/coverage
+  rabbitmq:
     image: rabbitmq:3.9
     restart: unless-stopped
-    hostname: rabbitmq_1
+    hostname: rabbitmq
     environment:
       - RABBITMQ_DEFAULT_USER=admin
       - RABBITMQ_DEFAULT_PASS=admin
@@ -21,8 +24,7 @@ services:
       - 5672:5672
     networks:
       - rabbitmq
-    #volumes:
-    #  - ./rabbitmq.config:/etc/rabbitmq/rabbitmq.conf:ro
+    stop_signal: SIGINT
 
 networks:
   rabbitmq:

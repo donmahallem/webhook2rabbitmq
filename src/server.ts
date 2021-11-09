@@ -6,39 +6,25 @@
 import express from 'express';
 import { Server } from 'http';
 import { AmqHandler } from './amq-handler';
+import { Config } from './config';
 import { createWebhookRouter } from './router';
 
-export interface IConfig {
-    /**
-     * amqConfig
-     */
-    amqConfig: ConstructorParameters<typeof AmqHandler>[0];
-    /**
-     * @default /api/webhooks/github
-     */
-    apiPath?: string;
-    /**
-     * port
-     */
-    port?: number;
-    /**
-     * queue
-     */
-    queue: string;
-    /**
-     * secret
-     */
-    secret?: string;
-}
 
 export class WRServer {
     public readonly app: express.Application;
     private readonly amqHandler: AmqHandler;
     private server: Server;
-    public constructor(public readonly config: IConfig) {
-        this.amqHandler = new AmqHandler(config.amqConfig, config.queue);
+    public constructor() {
+        this.amqHandler = new AmqHandler({
+            hostname: Config.AMQ_HOSTNAME,
+            password: Config.AMQ_PASSWORD,
+            port: Config.AMQ_PORT,
+            protocol: Config.AMQ_PROTOCOL,
+            username: Config.AMQ_PASSWORD,
+            vhost: Config.AMQ_VHOST,
+        }, Config.AMQ_QUEUE);
         this.app = express();
-        this.app.use(config.apiPath || '/api/webhooks/github', createWebhookRouter(this.amqHandler, config.secret));
+        this.app.use(Config.API_PATH, createWebhookRouter(this.amqHandler, Config.GITHUB_SECRET));
     }
 
     public start(): Promise<void> {
@@ -46,17 +32,18 @@ export class WRServer {
             throw new Error('Server is already listening');
         }
         return new Promise((res: (arg: void) => void) => {
-            this.server = this.app.listen(this.config.port || 3000, (): void => {
+            this.server = this.app.listen(Config.API_PORT, (): void => {
                 res();
             });
         });
     }
 
-    public stop(): Promise<void> {
-        return new Promise((res: (arg: void) => void, rej: (err: any) => void) => {
+    public async stop(): Promise<void> {
+        await new Promise((res: (arg: void) => void, rej: (err: any) => void) => {
             this.server.close((err: any): void => {
                 err ? rej(err) : res();
             });
         });
+        await this.amqHandler.close();
     }
 }
