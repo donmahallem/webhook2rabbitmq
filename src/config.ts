@@ -1,3 +1,7 @@
+/*
+ * Package @donmahallem/webhook2rabbitmq
+ * Source https://github.com/donmahallem/webhook2rabbitmq
+ */
 
 export class Config {
     /**
@@ -66,5 +70,4 @@ export class Config {
         }
         return undefined;
     }
-
 }

@@ -9,20 +9,22 @@ import { AmqHandler } from './amq-handler';
 import { Config } from './config';
 import { createWebhookRouter } from './router';
 
-
 export class WRServer {
     public readonly app: express.Application;
     private readonly amqHandler: AmqHandler;
     private server: Server;
     public constructor() {
-        this.amqHandler = new AmqHandler({
-            hostname: Config.AMQ_HOSTNAME,
-            password: Config.AMQ_PASSWORD,
-            port: Config.AMQ_PORT,
-            protocol: Config.AMQ_PROTOCOL,
-            username: Config.AMQ_PASSWORD,
-            vhost: Config.AMQ_VHOST,
-        }, Config.AMQ_QUEUE);
+        this.amqHandler = new AmqHandler(
+            {
+                hostname: Config.AMQ_HOSTNAME,
+                password: Config.AMQ_PASSWORD,
+                port: Config.AMQ_PORT,
+                protocol: Config.AMQ_PROTOCOL,
+                username: Config.AMQ_PASSWORD,
+                vhost: Config.AMQ_VHOST,
+            },
+            Config.AMQ_QUEUE
+        );
         this.app = express();
         this.app.use(Config.API_PATH, createWebhookRouter(this.amqHandler, Config.GITHUB_SECRET));
     }

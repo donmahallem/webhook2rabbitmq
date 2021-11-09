@@ -6,7 +6,7 @@
 import { Channel, Connection, connect, GetMessage, Replies } from 'amqplib';
 
 export class AmqTestHandler {
-    public constructor(private readonly connectionData: Parameters<typeof connect>[0], public readonly queueName: string) { }
+    public constructor(private readonly connectionData: Parameters<typeof connect>[0], public readonly queueName: string) {}
     private channel: Channel;
     private connection: Connection;
     private async initChannel(): Promise<Channel> {
@@ -30,7 +30,7 @@ export class AmqTestHandler {
 
     public async get(queue: string): Promise<GetMessage | false> {
         const dataChannel: Channel = await this.initChannel();
-        return dataChannel.get(queue)
+        return dataChannel.get(queue);
     }
 
     public async close(): Promise<void> {

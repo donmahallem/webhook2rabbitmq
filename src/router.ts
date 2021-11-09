@@ -98,7 +98,8 @@ export function createWebhookRouter(amqHandler: AmqHandler, secret: string | und
                 .then((): void => {
                     res.status(200).json({ status: 200 });
                 })
-                .catch((err: any): void => {
+                .catch((err: any | Error): void => {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
                     next(new HttpError(err?.message || 'Upstream error', 503));
                 });
         }
