@@ -105,11 +105,10 @@ export function createWebhookRouter(amqHandler: AmqHandler, secret: string | und
         }
     );
     route.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction): void => {
-        /*
-        if (process.env.NODE_ENV !== 'production') {
+
+        if (process.env.NODE_ENV !== 'debug') {
             console.log(err);
         }
-        */
         if (err instanceof HttpError) {
             res.status(err.status).json({
                 message: err.message,
