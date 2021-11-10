@@ -67,7 +67,7 @@ describe('server.ts', (): void => {
             let amqTestHandler: AmqTestHandler;
             const TEST_QUEUE_NAME: string = 'github_webhook';
             before('Setup server data', (): void => {
-                process.env.AMQ_HOSTNAME = 'rabbitmq';
+                process.env.AMQ_HOSTNAME = process.env.TEST_AMQ_HOSTNAME || 'rabbitmq';
                 process.env.AMQ_USERNAME = 'admin';
                 process.env.AMQ_PASSWORD = 'admin';
                 process.env.AMQ_QUEUE = TEST_QUEUE_NAME;
