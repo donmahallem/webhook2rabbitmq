@@ -74,7 +74,6 @@ describe('server.ts', (): void => {
             });
             beforeEach('setup amq test', async (): Promise<void> => {
                 amqTestHandler = new AmqTestHandler({
-                    hostname: 'rabbitmq',
                     username: 'admin',
                     password: 'admin'
                 }, TEST_QUEUE_NAME);
