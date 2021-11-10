@@ -75,7 +75,7 @@ jobs:
         run: |
           npm run test:integration
         env:
-          TEST_AMQ_HOST: localhost
+          TEST_AMQ_HOSTNAME: localhost
   test_docker:
     runs-on: ${{ matrix.os }}
     name: Test - ${{ matrix.os }} - Docker Build
