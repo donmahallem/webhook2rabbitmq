@@ -70,7 +70,7 @@ describe('router.ts', (): void => {
                             'x-github-event': 'testevent',
                         })
                         .send(TEST_PAYLOAD)
-                        .expect(500, { message: 'test error', status: 500 })
+                        .expect(503, { message: 'test error', status: 503 })
                         .expect('Content-Length', '37')
                         .expect('Content-Type', /json/)
                         .then((): void => {

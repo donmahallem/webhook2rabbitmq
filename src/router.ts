@@ -32,6 +32,10 @@ type GithubWebhookRequest = express.Request<Record<string, never>, any, string> 
  */
 export function validateRequest(secret: string | undefined): express.RequestHandler {
     return (req: GithubWebhookRequest, res: express.Response, next: express.NextFunction): void => {
+        if (req.is(['json', 'text/plain']) === false) {
+            next(new HttpError('Invalid request type', 400));
+            return;
+        }
         if (req.headers['x-github-event'] && typeof req.headers['x-github-event'] !== 'string') {
             res.sendStatus(400);
             return;
@@ -42,15 +46,15 @@ export function validateRequest(secret: string | undefined): express.RequestHand
         }
         if (secret) {
             if (typeof req.headers['x-hub-signature-256'] !== 'string') {
-                res.sendStatus(400);
+                next(new HttpError('Missing signature', 400));
                 return;
             }
             verify(secret, req.body, req.headers['x-hub-signature-256'])
-                .then((res: boolean): void => {
-                    if (res) {
+                .then((verifyResult: boolean): void => {
+                    if (verifyResult) {
                         next();
                     } else {
-                        next(new Error('Invalid request'));
+                        next(new HttpError('Invalid signature', 401));
                     }
                 })
                 .catch((err: any): void => {
@@ -72,10 +76,17 @@ export function createWebhookRouter(amqHandler: AmqHandler, secret: string | und
         text({ defaultCharset: 'utf-8', type: ['text/plain', 'application/json'] }),
         validateRequest(secret),
         (req: GithubWebhookRequest, res: express.Response, next: express.NextFunction): void => {
-            if (typeof req.body !== 'string') {
-                res.sendStatus(400);
+            if (typeof req.body !== 'string' || req.body?.length === 0) {
+                next(new HttpError('Empty body', 400));
+                return;
             }
-            const parsedBody: Record<string, unknown> = JSON.parse(req.body) as Record<string, unknown>;
+            let parsedBody: Record<string, unknown>;
+            try {
+                parsedBody = JSON.parse(req.body) as Record<string, unknown>;
+            } catch (err: any) {
+                next(new HttpError('Invalid JSON', 400));
+                return;
+            }
             const event: string = req.headers['x-github-event'];
             const id: string = req.headers['x-github-delivery'];
             amqHandler
@@ -87,15 +98,15 @@ export function createWebhookRouter(amqHandler: AmqHandler, secret: string | und
                 .then((): void => {
                     res.status(200).json({ status: 200 });
                 })
-                .catch((err: any): void => {
-                    next(err);
+                .catch((err: any | Error): void => {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+                    next(new HttpError(err?.message || 'Upstream error', 503));
                 });
         }
     );
     route.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction): void => {
-        if (!err) {
-            next();
-            return;
+        if (process.env.NODE_ENV === 'debug') {
+            console.log(err);
         }
         if (err instanceof HttpError) {
             res.status(err.status).json({
