@@ -1,5 +1,5 @@
 # Get base container
-FROM node:16.8-alpine AS apline_container
+FROM node:17.3-alpine AS apline_container
 
 # Build server
 FROM apline_container AS build_server
@@ -25,7 +25,6 @@ WORKDIR /usr/src/app
 COPY --chown=node:node package*.json tsconfig*.json ./
 COPY --chown=node:node ./src ./src
 COPY --from=build_server --chown=node:node /usr/src/app/dist ./dist
-RUN ls -R /manniwatch/client
 ENV NODE_ENV="production"
 RUN npm ci --production && \
     npm cache clean --force

@@ -1,13 +1,31 @@
-version: "3.9"
+version: '3.3'
+
 services:
-  web:
-    container_name: manniwatch_web_server
-    image: manniwatch/test
-    build: .
+  test_client:
+    build: 
+      context: ./
+      dockerfile: DockerfileTest
+
+    networks:
+      - rabbitmq
+    depends_on:
+      - rabbitmq
     stop_signal: SIGINT
-    init: true
-    ports:
-      - "4200:3000"
+    volumes:
+      - ./coverage:/usr/src/app/coverage
+  rabbitmq:
+    image: rabbitmq:3.9
+    restart: unless-stopped
+    hostname: rabbitmq
     environment:
-      NODE_ENV: production
-      MW_ENDPOINT: https://kvg-kiel.de
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+    ports:
+      - 5672:5672
+    networks:
+      - rabbitmq
+    stop_signal: SIGINT
+
+networks:
+  rabbitmq:
+    name: rabbitmq

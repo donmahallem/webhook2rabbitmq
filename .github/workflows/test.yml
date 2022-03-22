@@ -17,7 +17,7 @@ jobs:
         with:
           fetch-depth: 200
       - name: Setup Node
-        uses: actions/setup-node@v2.4.0
+        uses: actions/setup-node@v2.5.1
         with:
           node-version: ${{ matrix.node }}
       - name: Get npm cache directory
@@ -25,7 +25,7 @@ jobs:
         run: |
           echo "::set-output name=dir::$(npm config get cache)"
       - name: Setup Cache
-        uses: actions/cache@v2.1.6
+        uses: actions/cache@v2.1.7
         with:
           path: |
             ${{ steps.npm-cache.outputs.dir }}
@@ -34,13 +34,48 @@ jobs:
           key: ${{ runner.os }}-node${{ matrix.node }}-npm-${{ hashFiles('**/package-lock.json') }}
       - name: Install Root Dependencies
         run: npm ci
-      - name: Test Build
+      - name: Build
         run: |
           npm run build
-          npm run build:docker
+      - name: Test
+        run: |
+          npm run test:coverage
       - name: Lint
         run: |
           npm run lint
+      - name: Build Docker
+        run: |
+          npm run build:docker
+  test_integration:
+    runs-on: ubuntu-latest
+    name: Test Integration
+    timeout-minutes: 30
+    services:
+      rabbitmq:
+        image: rabbitmq
+        # Map port 8080 on the Docker host to port 80 on the nginx container
+        ports:
+          - 5672:5672
+        env:
+          RABBITMQ_DEFAULT_USER: admin
+          RABBITMQ_DEFAULT_PASS: admin
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+      - name: Install Root Dependencies
+        run: npm ci
+      - name: Test
+        run: |
+          npm run test:integration
+        env:
+          TEST_AMQ_HOSTNAME: localhost
   test_docker:
     runs-on: ${{ matrix.os }}
     name: Test - ${{ matrix.os }} - Docker Build
@@ -61,7 +96,7 @@ jobs:
       
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v3.5.0
+        uses: docker/metadata-action@v3.6.2
         with:
           images: manniwatch/manniwatch
           labels: |
@@ -82,7 +117,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   finish:
-    needs: [test_suite,test_docker]
+    needs: [test_suite, test_docker, test_integration]
     name: Finish Test
     runs-on: ubuntu-latest
     steps:
