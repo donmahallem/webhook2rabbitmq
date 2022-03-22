@@ -54,7 +54,7 @@
     "@octokit/webhooks": "~9.22.0",
     "@octokit/webhooks-methods": "~2.0.0",
     "amqplib": "~0.8.0",
-    "body-parser": "~1.19.1",
+    "body-parser": "~1.19.2",
     "express": "~4.17.2"
   },
   "devDependencies": {
