@@ -58,7 +58,7 @@
     "express": "~4.17.3"
   },
   "devDependencies": {
-    "@donmahallem/eslint-config": "1.0.43",
+    "@donmahallem/eslint-config": "1.0.44",
     "@types/amqplib": "0.8.2",
     "@types/chai": "4.3.0",
     "@types/express": "4.17.13",
