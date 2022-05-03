@@ -14,7 +14,7 @@ services:
     volumes:
       - ./coverage:/usr/src/app/coverage
   rabbitmq:
-    image: rabbitmq:3.9
+    image: rabbitmq:3.10
     restart: unless-stopped
     hostname: rabbitmq
     environment:
